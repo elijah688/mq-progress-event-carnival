@@ -17,7 +17,7 @@ function App() {
 
         const newCompletedTasks = {};
         for (const taskID in data) {
-          if (data[taskID].percentageComplete >= 1.0) {
+          if (data[taskID].state === "Complete") {
             newCompletedTasks[taskID] = data[taskID];
           }
         }
@@ -36,13 +36,11 @@ function App() {
       } finally {
         setLoading(false);
       }
-    }, 1000); // Fetch every 1000 ms
+    }, 100); 
 
-    // Cleanup function to clear the interval on component unmount
     return () => clearInterval(intervalId);
   }, []);
 
-  // Function to spawn a new task
   const spawnTask = async () => {
     const portMap = {
       0: 8080,
@@ -77,7 +75,7 @@ function App() {
       setProgressData((prev) => ({
         ...prev,
         [taskID]: {
-          ...result, // Assuming the result contains other task details
+          ...result,
         },
       }));
 
@@ -93,7 +91,6 @@ function App() {
       <h1 className="text-3xl font-bold underline mb-4">Task Tracker</h1>
 
       <div className="flex justify-between">
-        {/* Running Tasks on the Left */}
         <div className="w-1/2 pr-2">
           <h2 className="text-lg font-bold mt-4">Running Tasks</h2>
           {Object.keys(progressData).map((taskID) => (
@@ -101,11 +98,10 @@ function App() {
           ))}
         </div>
 
-        {/* Completed Tasks on the Right */}
         <div className="w-1/2 pl-2">
           <h2 className="text-lg font-bold mt-4">Completed Tasks</h2>
           {Object.keys(completedTasks).map((taskID) => (
-            <TaskCard key={taskID} taskID={taskID} progressData={completedTasks}  />
+            <TaskCard key={taskID} taskID={taskID} progressData={completedTasks} />
           ))}
         </div>
       </div>
@@ -113,7 +109,7 @@ function App() {
       <div className="mt-4">
         <button
           className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={spawnTask} // Click to spawn a task with a random port
+          onClick={spawnTask} 
         >
           Hit (Spawn Random Task)
         </button>
@@ -122,9 +118,8 @@ function App() {
   );
 }
 
-// TaskCard component to display individual task progress
 const TaskCard = ({ taskID, progressData, color }) => {
-  const task = progressData[taskID]; // Get task data based on taskID
+  const task = progressData[taskID]; 
 
   console.log(`${color || "lime"} `)
   return (
