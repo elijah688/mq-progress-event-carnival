@@ -11,12 +11,13 @@ import (
 	"net/http"
 	"os"
 	"sync"
+
+	"github.com/go-chi/chi/v5"
 )
 
 var messageMap sync.Map
 
 func main() {
-
 	cfg, err := config.NewQueueConfig()
 	if err != nil {
 		log.Fatal(err)
@@ -36,30 +37,31 @@ func main() {
 
 	go func() {
 		for msg := range msgs {
-			// Parse the JSON message into the Message struct
 			var message model.Message
 			if err := json.Unmarshal(msg.Body, &message); err != nil {
 				log.Printf("Failed to parse message: %v", err)
 				continue
 			}
 
-			// Store the message in the sync.Map
 			messageMap.Store(message.ID, message)
 
-			// Print the message ID and progress
 			fmt.Printf("Received message ID: %s, Progress: %.2f\n", message.ID, message.PercentageComplete)
 		}
 	}()
 
-	http.HandleFunc("/taskmon", taskmonHandler)
-	handler := middleware.CORS(http.DefaultServeMux)
+	r := chi.NewRouter()
+
+	r.Use(middleware.CORS)
+
+	r.Get("/taskmon", taskmonHandler)
+	r.Delete("/{id}", deleteTaskHandler)
 
 	port := os.Getenv("CONSUMER_PORT")
-	fmt.Printf("Server is running on port %s...", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), handler); err != nil {
+	fmt.Printf("Server is running on port %s...\n", port)
+
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), r); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
-
 }
 
 func taskmonHandler(w http.ResponseWriter, r *http.Request) {
@@ -76,4 +78,19 @@ func taskmonHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(tempMap); err != nil {
 		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
 	}
+}
+
+func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	taskID := chi.URLParam(r, "id")
+	if taskID == "" {
+		http.Error(w, "Missing task ID", http.StatusBadRequest)
+		return
+	}
+
+	if _, loaded := messageMap.LoadAndDelete(taskID); !loaded {
+		http.Error(w, "Task not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
