@@ -1,0 +1,8 @@
+#!/bin/sh
+
+while true; do
+curl http://localhost:3333/taskmon | jq . 
+sleep 1;
+clear;
+done
+

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+init_mq() {
+
+    curl -i -u guest:guest -H "content-type:application/json" \
+        -X PUT -d '{"durable":true}' \
+        http://localhost:15672/api/queues/%2f/my_queue
+
+    curl -i -u guest:guest -H "content-type:application/json" \
+        -X PUT -d '{"type":"topic","durable":true}' \
+        http://localhost:15672/api/exchanges/%2f/my_topic
+
+    curl -i -u guest:guest -H "content-type:application/json" \
+        -X POST -d "{\"routing_key\":\"my.routing.key\"}" \
+        http://localhost:15672/api/bindings/%2f/e/my_topic/q/my_queue
+}
+
+init_mq

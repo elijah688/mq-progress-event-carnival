@@ -1,0 +1,4 @@
+curl -i -u guest:guest -H "Content-Type: application/json" \
+    -X PUT -d '{"type":"topic","durable":true}' \
+    http://localhost:15672/api/exchanges/%2F/my_topic
+
