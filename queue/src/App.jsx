@@ -4,7 +4,6 @@ import './App.css';
 function App() {
   const [progressData, setProgressData] = useState({});
   const [completedTasks, setCompletedTasks] = useState({});
-  const [colorMapping, setColorMapping] = useState({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -45,15 +44,10 @@ function App() {
       2: 8082,
     };
 
-    const colors = {
-      0: 'yellow',
-      1: 'blue',
-      2: 'pink',
-    };
+
 
     const num = Math.floor(Math.random() * 3);
     const port = portMap[num];
-    const color = colors[num];
 
     try {
       const response = await fetch(`http://localhost:${port}/work`, {
@@ -63,10 +57,6 @@ function App() {
       const taskID = result.taskID;
       console.log('Spawned Task ID:', taskID);
 
-      setColorMapping((prev) => ({
-        ...prev,
-        [taskID]: color,
-      }));
 
       setProgressData((prev) => ({
         ...prev,
@@ -82,18 +72,16 @@ function App() {
 
   const deleteTask = async (taskID) => {
     try {
-      const response = await fetch(`http://localhost:3333/${taskID}`, {
+      setCompletedTasks((prev) => {
+        const updatedTasks = { ...prev };
+        delete updatedTasks[taskID];
+        return updatedTasks;
+      });
+      
+      await fetch(`http://localhost:3333/${taskID}`, {
         method: 'DELETE',
       });
-      if (response.ok) {
-        setCompletedTasks((prev) => {
-          const updatedTasks = { ...prev };
-          delete updatedTasks[taskID]; 
-          return updatedTasks;
-        });
-      } else {
-        console.error('Failed to delete task:', response.statusText);
-      }
+
     } catch (error) {
       console.error('Error deleting task:', error);
     }
@@ -107,7 +95,7 @@ function App() {
         <div className="w-1/2 pr-2">
           <h2 className="text-lg font-bold mt-4">Running Tasks</h2>
           {Object.keys(progressData).map((taskID) => (
-            <TaskCard key={taskID} taskID={taskID} progressData={progressData} color={colorMapping[taskID]} />
+            <TaskCard key={taskID} taskID={taskID} progressData={progressData} />
           ))}
         </div>
 
@@ -136,7 +124,7 @@ function App() {
   );
 }
 
-const TaskCard = ({ taskID, progressData, color, onDelete }) => {
+const TaskCard = ({ taskID, progressData, onDelete }) => {
   const task = progressData[taskID];
 
   return (
@@ -150,7 +138,7 @@ const TaskCard = ({ taskID, progressData, color, onDelete }) => {
             className="h-2 rounded-full"
             style={{
               width: `${task?.percentageComplete * 100 || 0}%`,
-              backgroundColor: `${color || "lime"} `,
+              backgroundColor: `${task.state === "Complete" ? 'lime' : task.color} `,
             }}
           />
         </div>
@@ -161,7 +149,7 @@ const TaskCard = ({ taskID, progressData, color, onDelete }) => {
       {task?.state === 'Complete' && (
         <button
           className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
-          onClick={() => onDelete(taskID)} 
+          onClick={() => onDelete(taskID)}
         >
           Delete
         </button>
