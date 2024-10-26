@@ -47,16 +47,18 @@ func main() {
 			}
 
 			for {
+
+				if message.PercentageComplete > 1.0 {
+					message.PercentageComplete = 1.0
+					message.State = "Complete"
+					message.FinishedTime = time.Now().UTC().Format(time.RFC3339)
+					fmt.Printf("Completed task ID: %s\n", message.ID)
+				}
+
 				body, err := json.Marshal(message)
 				if err != nil {
 					log.Printf("Failed to marshal message: %v", err)
 					return
-				}
-
-				if message.PercentageComplete > 1.0 {
-					message.PercentageComplete = 1.0
-					message.FinishedTime = time.Now().UTC().Format(time.RFC3339)
-					fmt.Printf("Completed task ID: %s\n", message.ID)
 				}
 
 				if err := q.Publish(body); err != nil {
