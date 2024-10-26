@@ -15,6 +15,17 @@ import (
 	"github.com/google/uuid"
 )
 
+func color(in string) string {
+	if len(in) == 0 {
+		return in
+	}
+
+	return map[string]string{
+		"0": "red",
+		"1": "blue",
+		"2": "yellow",
+	}[string(in[len(in)-1])]
+}
 func main() {
 	port := os.Getenv("PUBLISHER_PORT")
 
@@ -37,6 +48,7 @@ func main() {
 			message := model.Message{
 				ID:                 taskID,
 				Name:               "Sample Task",
+				Color:              color(port),
 				User:               "user@example.com",
 				State:              "Running",
 				StartTime:          time.Now().UTC().Format(time.RFC3339),

@@ -45,3 +45,4 @@ run: nuke mq_up
 	@export $$(cat .env | xargs); \
 	make back; \
 	make front; \
+	brave http://localhost:5173

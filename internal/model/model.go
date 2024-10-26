@@ -10,4 +10,5 @@ type Message struct {
 	Duration           string  `json:"duration"`
 	ErrorMessage       string  `json:"errorMessage"`
 	PercentageComplete float64 `json:"percentageComplete"`
+	Color              string  `json:"color"`
 }
